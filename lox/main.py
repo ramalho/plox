@@ -3,6 +3,7 @@ import readline  # enable readline for input()
 
 import parser
 
+
 def main(args: list[str]) -> None:
     if len(args) == 0:
         run_prompt()
@@ -30,7 +31,7 @@ def run_prompt() -> None:
         _run(line)
         had_error = False
 
- 
+
 def _run(source: str):
     scanner = parser.Scanner(source)
     for token in scanner.scan_tokens():

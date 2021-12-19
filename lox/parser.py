@@ -1,7 +1,8 @@
 from enum import Enum
-from typing import Final, Optional
+from typing import NamedTuple, Optional
 
 import main
+
 
 class TokenType(Enum):
 
@@ -58,23 +59,21 @@ class TokenType(Enum):
         text = self.value
         return text.isalpha() and text.lower() == text
 
+
 KEYWORDS = {tt.value: tt for tt in TokenType if tt.iskeyword()}
 
 
-class Token:
-
-    def __init__(self, type: TokenType, lexeme: str, literal: object, line: int) -> None:
-        self.type: Final = type
-        self.lexeme: Final = lexeme
-        self.literal: Final = literal
-        self.line: Final = line
+class Token(NamedTuple):
+    type: TokenType
+    lexeme: str
+    literal: object
+    line: int
 
     def __str__(self):
-        return f'{self.type} {self.lexeme} {self.literal}'
+        return f'{self.type.name} {self.lexeme!r} {self.literal!r}'
 
 
 class Scanner:
-
     def __init__(self, source: str):
         self.source = source
         self.tokens: list[Token] = []
@@ -97,16 +96,26 @@ class Scanner:
     def scan_token(self) -> None:
         c = self.advance()
 
-        if c == '(': self.add(TokenType.LEFT_PAREN)
-        elif c == ')': self.add(TokenType.RIGHT_PAREN)
-        elif c == '{': self.add(TokenType.LEFT_BRACE)
-        elif c == '}': self.add(TokenType.RIGHT_BRACE)
-        elif c == ',': self.add(TokenType.COMMA)
-        elif c == '.': self.add(TokenType.DOT)
-        elif c == '-': self.add(TokenType.MINUS)
-        elif c == '+': self.add(TokenType.PLUS)
-        elif c == ';': self.add(TokenType.SEMICOLON)
-        elif c == '*': self.add(TokenType.STAR)
+        if c == '(':
+            self.add(TokenType.LEFT_PAREN)
+        elif c == ')':
+            self.add(TokenType.RIGHT_PAREN)
+        elif c == '{':
+            self.add(TokenType.LEFT_BRACE)
+        elif c == '}':
+            self.add(TokenType.RIGHT_BRACE)
+        elif c == ',':
+            self.add(TokenType.COMMA)
+        elif c == '.':
+            self.add(TokenType.DOT)
+        elif c == '-':
+            self.add(TokenType.MINUS)
+        elif c == '+':
+            self.add(TokenType.PLUS)
+        elif c == ';':
+            self.add(TokenType.SEMICOLON)
+        elif c == '*':
+            self.add(TokenType.STAR)
         elif c == '!':
             if self.match('='):
                 self.add(TokenType.BANG_EQUAL)
@@ -161,7 +170,7 @@ class Scanner:
         self.advance()
 
         # Trim the surrounding quotes.
-        value = self.source[self.start + 1:self.current - 1]
+        value = self.source[self.start + 1 : self.current - 1]
         self.add(TokenType.STRING, value)
 
     def number(self) -> None:
@@ -174,14 +183,14 @@ class Scanner:
             self.advance()
             while self.peek().isdigit():
                 self.advance()
-        value = float(self.source[self.start:self.current])
+        value = float(self.source[self.start : self.current])
         self.add(TokenType.NUMBER, value)
 
     def identifier(self) -> None:
         while self.peek().isalnum():
-            self.advance() 
+            self.advance()
 
-        text = self.source[self.start:self.current]
+        text = self.source[self.start : self.current]
         type = KEYWORDS.get(text, TokenType.IDENTIFIER)
         self.add(type)
 
@@ -191,19 +200,23 @@ class Scanner:
         return c
 
     def match(self, expected: str) -> bool:
-        if self.is_at_end(): return False
-        if self.source[self.current] != expected: return False
+        if self.is_at_end():
+            return False
+        if self.source[self.current] != expected:
+            return False
         self.current += 1
         return True
 
     def peek(self) -> str:
-        if self.is_at_end(): return '\0'
+        if self.is_at_end():
+            return '\0'
         return self.source[self.current]
 
     def peek_next(self) -> str:
-        if self.current + 1 >= len(self.source): return '\0'
+        if self.current + 1 >= len(self.source):
+            return '\0'
         return self.source[self.current + 1]
 
     def add(self, type: TokenType, literal: Optional[object] = None) -> None:
-        text = self.source[self.start:self.current]
+        text = self.source[self.start : self.current]
         self.tokens.append(Token(type, text, literal, self.line))
